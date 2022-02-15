@@ -4,9 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 
 import 'package:icure_medical_device_dart_sdk/api.dart';
-import 'package:icure_medical_device_dart_sdk/api/impl/patient_api_impl.dart';
-import 'package:icure_medical_device_dart_sdk/api/impl/user_api_impl.dart';
-import 'package:icure_medical_device_dart_sdk/medtech_api.dart';
+
 import 'utils/date_utils.dart';
 
 class PatientSearch extends StatefulWidget {

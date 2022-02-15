@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:icure_medical_device_dart_sdk/medtech_api.dart';
-import 'package:md_flutter_app/patient_search.dart';
+
+import 'package:icure_medical_device_dart_sdk/api.dart';
+
+import 'patient_search.dart';
 
 class MainRouter {
   MainRouter(this.medTechApi);

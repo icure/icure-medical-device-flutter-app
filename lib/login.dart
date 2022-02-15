@@ -4,9 +4,10 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:icure_medical_device_dart_sdk/api/impl/user_api_impl.dart';
-import 'package:icure_medical_device_dart_sdk/medtech_api.dart';
+
 import 'animations/animations.dart';
+
+import 'package:icure_medical_device_dart_sdk/api.dart';
 import 'package:icure_dart_sdk/util/binary_utils.dart';
 
 import 'constants/skin.dart';
