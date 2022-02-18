@@ -32,17 +32,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String _userName = '';
   String _password = '';
 
-  Future<MedTechApi> medtechApi(String userName, String password) async {
-    final MedTechApiBuilder builder = MedTechApiBuilder();
-    builder.iCureBasePath = 'https://kraken.icure.dev';
-    builder.userName = userName;
-    builder.password = password;
-
-    builder.addKeyPair("782f1bcd-9f3f-408a-af1b-cd9f3f908a98",
-        (await loadKey()).toPrivateKey());
-
-    return builder.build();
-  }
+  Future<MedTechApi> medtechApi(String userName, String password) async => MedTechApiBuilder()
+        .withICureBasePath('https://kraken.icure.dev')
+        .withUserName(userName)
+        .withPassword(password)
+        .addKeyPair("782f1bcd-9f3f-408a-af1b-cd9f3f908a98", (await loadKey()).toPrivateKey())
+        .build();
 
   @override
   void initState() {

@@ -8,11 +8,12 @@ import 'package:md_flutter_app/router.dart';
 
 import 'utils/date_utils.dart';
 
-class PatientSearch extends StatefulWidget {
+class PatientDetails extends StatefulWidget {
   final Future<MedTechApi> medTechApi;
+  final Patient patient;
   final MainRouter router;
 
-  const PatientSearch({Key? key, required this.router, required this.title, required this.medTechApi})
+  const PatientDetails({Key? key, required this.patient, required this.router, required this.title, required this.medTechApi})
       : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -27,31 +28,38 @@ class PatientSearch extends StatefulWidget {
   final String title;
 
   @override
-  State<PatientSearch> createState() => _PatientSearchState();
+  State<PatientDetails> createState() => _PatientDetailsState();
 }
 
-class _PatientSearchState extends State<PatientSearch> {
-  List<Patient> _foundPatients = [];
+class _PatientDetailsState extends State<PatientDetails> {
+  List<DataSample> _allDataSamples = [];
+  List<DataSample> _selectedDataSamples = [];
   User? _loggedUser;
   String? _latestSearchString;
 
-  Future<PatientApi> patientApi() =>
-      widget.medTechApi.then((mapi) => mapi.patientApi);
+  Future<DataSampleApi> dataSampleApi() =>
+      widget.medTechApi.then((mapi) => mapi.dataSampleApi);
 
   Future<UserApi> userApi() =>
       widget.medTechApi.then((mapi) => mapi.userApi);
 
+  Future<Crypto> crypto() =>
+      widget.medTechApi.then((mapi) => mapi.localCrypto);
+
+
   @override
   void initState() {
-    userApi().then((api) {
+    dataSampleApi().then((api) async {
       try {
         log("Loading user");
-        api.getLoggedUser().then((me) {
-          log("User is ${me}");
-          setState(() {
-            _loggedUser = me;
-          });
-        });
+        final user = await (await userApi()).getLoggedUser();
+        if (user == null) {
+          throw const FormatException('You have been unlogged');
+        }
+        final dss = await api.filterDataSample(await DataSampleFilter().forHcp(HealthcareProfessional(id:user.healthcarePartyId!)).forPatients(await crypto(), [widget.patient]).build());
+
+        _allDataSamples = dss?.rows ?? [];
+        _search(_latestSearchString ?? '');
       } catch (e) {
         log("Cannot get logged user", error: e);
       }
@@ -59,28 +67,20 @@ class _PatientSearchState extends State<PatientSearch> {
     super.initState();
   }
 
-  void _addPatient() {}
+  void _addDataSample() {}
 
   void _search(String searchString) {
-    _latestSearchString = searchString;
     if (searchString.isEmpty) {
       setState(() {
-        _foundPatients = [];
+        _selectedDataSamples = _allDataSamples;
       });
     } else {
       Timer(const Duration(seconds: 1), () {
         if (_latestSearchString == searchString) {
-          patientApi().then((api) async {
-            final res = (await api.filterPatients(
-                        PatientByHcPartyNameContainsFuzzyFilter(
-                            healthcarePartyId: _loggedUser?.healthcarePartyId,
-                            searchString: searchString)))
-                    ?.rows ??
-                [];
-            setState(() {
-              _foundPatients = res;
-            });
-
+          setState(() {
+            _selectedDataSamples = _allDataSamples.where((element) =>
+                element.content.entries.any((c) => c.value.stringValue
+                    ?.contains(searchString) ?? false)).toList();
           });
         }
       });
@@ -97,7 +97,7 @@ class _PatientSearchState extends State<PatientSearch> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the PatientSearch object that was created by
+        // Here we take the value from the PatientDetails object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
@@ -117,20 +117,19 @@ class _PatientSearchState extends State<PatientSearch> {
               height: 20,
             ),
             Expanded(
-              child: _foundPatients.isNotEmpty
+              child: _selectedDataSamples.isNotEmpty
                   ? ListView.builder(
-                      itemCount: _foundPatients.length,
+                      itemCount: _selectedDataSamples.length,
                       itemBuilder: (context, index) => Card(
-                        key: ValueKey(_foundPatients[index].id),
+                        key: ValueKey(_selectedDataSamples[index].id),
                         color: Colors.indigoAccent,
                         elevation: 4,
                         margin: const EdgeInsets.symmetric(vertical: 10),
                         child: ListTile(
-                          onTap: () { widget.router.patientDetails(context, _foundPatients[index]); },
                           subtitle:
-                              Text('${_foundPatients[index].dateOfBirth?.toShortDate() ?? '-'}'),
+                              Text(_selectedDataSamples[index].content.entries.map((c) => c.value.stringValue).whereType<String>().join('\n')),
                           title: Text(
-                              "${_foundPatients[index].firstName ?? ''} ${_foundPatients[index].lastName ?? ''}",
+                              _selectedDataSamples[index].valueDate?.toShortDate() ?? '-',
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
@@ -145,8 +144,8 @@ class _PatientSearchState extends State<PatientSearch> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addPatient,
-        tooltip: 'Increment',
+        onPressed: _addDataSample,
+        tooltip: 'Add note for patient',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
