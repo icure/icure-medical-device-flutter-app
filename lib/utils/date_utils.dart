@@ -1,5 +1,6 @@
 extension intToDate on int {
   String toShortDate() {
-    return "${this%100}/${(this/100).floor()%100}/${(this/10000).floor()}";
+    final date = this<99993112 ? this : (this/1000000).floor();
+    return "${date%100}/${(date/100).floor()%100}/${(date/10000).floor()}";
   }
 }

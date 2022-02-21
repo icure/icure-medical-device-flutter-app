@@ -34,10 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  icure_medical_device_dart_sdk: #^1.0.7
-    git:
-      url: https://github.com/icure-io/icure-medical-device-dart-sdk.git
-      ref: 41732a3fafaba31259fa242dea64bba347ff97a5
+  icure_medical_device_dart_sdk: ^1.1.3
   font_awesome_flutter: ^9.2.0
 
 dev_dependencies:

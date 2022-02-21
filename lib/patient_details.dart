@@ -56,7 +56,11 @@ class _PatientDetailsState extends State<PatientDetails> {
         if (user == null) {
           throw const FormatException('You have been unlogged');
         }
-        final dss = await api.filterDataSample(await DataSampleFilter().forHcp(HealthcareProfessional(id:user.healthcarePartyId!)).forPatients(await crypto(), [widget.patient]).build());
+        final dss = await api.filterDataSample(
+            await DataSampleFilter()
+            .forHcp(HealthcareProfessional(id:user.healthcarePartyId!))
+            .forPatients(await crypto(), [widget.patient]
+            ).build());
 
         _allDataSamples = dss?.rows ?? [];
         _search(_latestSearchString ?? '');
@@ -127,7 +131,9 @@ class _PatientDetailsState extends State<PatientDetails> {
                         margin: const EdgeInsets.symmetric(vertical: 10),
                         child: ListTile(
                           subtitle:
-                              Text(_selectedDataSamples[index].content.entries.map((c) => c.value.stringValue).whereType<String>().join('\n')),
+                              Text("${
+                                  _selectedDataSamples[index].labels.firstWhere((element) => element.type == 'LOINC', orElse: () => CodingReference(code: 'Unknown')).code ?? 'Unknown:'
+                              }: ${_selectedDataSamples[index].content.entries.map((c) => c.value.stringValue ?? c.value.numberValue?.toString()).whereType<String>().join('\n')}"),
                           title: Text(
                               _selectedDataSamples[index].valueDate?.toShortDate() ?? '-',
                             style: TextStyle(color: Colors.white),
